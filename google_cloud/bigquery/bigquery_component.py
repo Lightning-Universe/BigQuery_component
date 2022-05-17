@@ -56,4 +56,4 @@ class BigQueryWork(L.LightningWork):
         if to_dataframe:
             self.result = cursor.result().to_dataframe()
         else:
-            self.result = list(cursor.result())[0].values()
+            self.result = [res for res in cursor.result()][0].values() if list(cursor.result()) else []
