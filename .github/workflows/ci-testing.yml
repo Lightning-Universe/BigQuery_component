@@ -59,11 +59,8 @@ jobs:
       shell: bash
 
     - name: Tests
-      env:
-        SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
-        SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
       run: |
-        coverage run --source slack -m py.test slack tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source google_cloud -m pytest google_cloud tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Statistics
       if: success()
