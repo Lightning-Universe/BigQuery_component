@@ -1,46 +1,35 @@
-###
+### About
 
-### Setup
+This component gives you the ability to interface with gcp.
+
+### Use the component
 
 Credentials can be provided in one of two ways:
 
 1. Pass the credentials directly as a dictionary:
 
 ```python
-from google_cloud.bigquery import BigQueryWork
-class GetData(LightningFlow):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+import lightning as L
+from lightning_gcp.bigquery import BigQueryWork
+
+
+class GetData(L.LightningFlow):
+    def __init__(self):
+        super().__init__()
         self.client = BigQueryWork()
 
-    def run(
-        self,
-        project_id,
-        columns,
-        target,
-        key,
-    ):
-
-        return self.client.run() self.stage_to_prod(
-            columns=columns,
-            source=staging_table,
-            target=target,
-            key=key,
-        )
-
-    def stage_to_prod(self, location="us-east1", project, columns, dataset, table):
+    def run(self, location, project, columns, dataset, table, credentials):
         query = f"""
             select
                 {','.join(columns)}
             from
                 `{dataset}.{table}`
         """
-        self.client.run(
-            query=query, project=project, location=location
-        )
+        self.client.run(query=query, project=project, location=location, credentials=credentials)
 ```
 
-2. Add `contexts/.secrets.json` with the following information.
+2. Add or create `~/.lighning.secrets/.secrets.json` with the following information with passing credentials in as a run parameter.
+
 ```json
 {
   "google_service_account": {
@@ -56,4 +45,12 @@ class GetData(LightningFlow):
     "client_x509_cert_url": "<CLIENT_CERT_URL>"
   }
 }
+```
+
+### Install
+
+```shell
+git clone https://github.com/PyTorchLightning/google-cloud.git
+cd google-cloud
+pip install -e .
 ```
