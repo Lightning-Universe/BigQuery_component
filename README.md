@@ -40,7 +40,7 @@ class GetData(LightningFlow):
         )
 ```
 
-2. Add a `contexts/.secrets.json` with the following information.
+2. Add `contexts/.secrets.json` with the following information.
 ```json
 {
   "google_service_account": {
