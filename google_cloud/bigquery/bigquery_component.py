@@ -13,6 +13,11 @@ class BigQueryWork(L.LightningWork):
         query: str, query that will be executed on BigQuery.
         project: str, the project identifier that BigQuery dataset exists in. Default = None.
         location: str, the location that the BigQuery dataset exists in.
+
+    Example:
+
+    .. code:: python
+
     """
 
     def __init__(
@@ -22,7 +27,7 @@ class BigQueryWork(L.LightningWork):
         location: Optional[str] = "us-east1",
         *args,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.query = query
         self.project = project
@@ -31,12 +36,12 @@ class BigQueryWork(L.LightningWork):
 
     def run(
         self,
-        query=None,
-        project=None,
-        location="us-east1",
-        credentials=contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
-        to_dataframe=False,
-    ):
+        query: str = None,
+        project: Optional[str] = None,
+        location: Optional[str] = "us-east1",
+        credentials: Optional[dict] = contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
+        to_dataframe: Optional[bool] =False,
+    ) -> None:
 
         if query is None:
             raise ValueError(f"Expected valid BigQuery SQL query. Observed: {query}")

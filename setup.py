@@ -1,21 +1,25 @@
 import setuptools
+from pip.req import parse_requirements
 
-with open("google-cloud/README.md") as fp:
+with open("README.md") as fp:
     long_description = fp.read()
 
+install_reqs = parse_requirements('requirements.txt')
+
 setuptools.setup(
-    name="google-cloud",
+    name="google_cloud",
     version="0.0.1",
-    description="Google-cloud is an interface between the google-cloud platform and Lightning.",
+    description="Google-cloud is an interface between the google_cloud platform and Lightning.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Eric Chea",
     url='https://github.com/PyTorchLightning/google-cloud',
-    packages=setuptools.find_packages(where="google-cloud*"),
-    install_requires=[],
+    packages=setuptools.find_packages(where="google_cloud*"),
+    install_requires=[
+
+    ],
     extras_require={
-        "dev": ["black>=22.1.0", "isort", "twine", "pre-commit"],
         "test": ["flake8", "flake8-print", "pytest", "pytest-cov", "mock", "nbval"],
     },
-    python_requires=">=3.7.1",
+    python_requires=">=3.9.11",
 )
