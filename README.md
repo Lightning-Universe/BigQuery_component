@@ -22,10 +22,10 @@ class GetHackerNewsArticles(L.LightningFlow):
     def run(
         self,
         location: str = "us-east1",
-        project: str = "lightning",
+        project: str = "bigquery-public-data",
         columns: List[str] = ["title", "score"],
-        dataset: str = "",
-        table: str = "",
+        dataset: str = "hacker_news",
+        table: str = "stories",
         credentials: dict,
     ):
         query = f"""
