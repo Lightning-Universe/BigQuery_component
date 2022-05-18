@@ -1,6 +1,7 @@
 from typing import Optional
 
 import lightning as L
+import pandas as pd
 from google.cloud import bigquery
 
 import contexts
@@ -32,7 +33,6 @@ class BigQueryWork(L.LightningWork):
         self.query = query
         self.project = project
         self.location = location
-        self.result = None
 
     def run(
         self,
@@ -43,23 +43,23 @@ class BigQueryWork(L.LightningWork):
             dict
         ] = contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
         to_dataframe: Optional[bool] = False,
-    ) -> None:
+    ) -> pd.DataFrame or bigquery.client.Client.query:
 
-        if query is None:
-            raise ValueError(f"SQL query is invalid. Observed: {query}")
+        self.query = query or self.query
+        self.project = project or self.project
+        self.location = location or self.location
+
+        if self.query is None:
+            raise ValueError(f"SQL query is required. Observed: {self.query}")
 
         if credentials is None:
             client = bigquery.Client(project=project)
         else:
             client = bigquery.Client(project=project, credentials=credentials)
 
-        cursor = client.query(query, location=location)
+        cursor = client.query(self.query, location=location)
 
         if to_dataframe:
-            self.result = cursor.result().to_dataframe()
+            return cursor.result().to_dataframe()
         else:
-            self.result = (
-                [res for res in cursor.result()][0].values()
-                if list(cursor.result())
-                else []
-            )
+            return cursor

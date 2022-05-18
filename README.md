@@ -9,16 +9,25 @@ Credentials can be provided in one of two ways:
 1. Pass the credentials directly as a dictionary:
 
 ```python
+from typing import List
 import lightning as L
 from lightning_gcp.bigquery import BigQueryWork
 
 
-class GetData(L.LightningFlow):
+class GetHackerNewsArticles(L.LightningFlow):
     def __init__(self):
         super().__init__()
         self.client = BigQueryWork()
 
-    def run(self, location, project, columns, dataset, table, credentials):
+    def run(
+        self,
+        location: str = "us-east1",
+        project: str = "lightning",
+        columns: List[str] = ["title", "score"],
+        dataset: str = "",
+        table: str = "",
+        credentials: dict,
+    ):
         query = f"""
             select
                 {','.join(columns)}
@@ -26,6 +35,9 @@ class GetData(L.LightningFlow):
                 `{dataset}.{table}`
         """
         self.client.run(query=query, project=project, location=location, credentials=credentials)
+
+        # The result attribute can be a dataframe or a list
+        self.client.result
 ```
 
 2. Add or create `~/.lighning.secrets/.secrets.json` with the following information with passing credentials in as a run parameter.
