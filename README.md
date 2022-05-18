@@ -34,10 +34,14 @@ class GetHackerNewsArticles(L.LightningFlow):
             from
                 `{dataset}.{table}`
         """
-        self.client.run(query=query, project=project, location=location, credentials=credentials)
 
-        # The result attribute can be a dataframe or a list
-        self.client.result
+        # Result as a generator
+        result = self.client.run(query=query, project=project, location=location, credentials=credentials)
+
+        # Result as a dataframe
+        result = self.client.run(
+            query=query, project=project, location=location, credentials=credentials, to_dataframe=True
+        )
 ```
 
 2. Add or create `~/.lighning.secrets/.secrets.json` with the following information with passing credentials in as a run parameter.
