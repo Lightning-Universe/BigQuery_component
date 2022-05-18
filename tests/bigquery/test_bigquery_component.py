@@ -1,3 +1,5 @@
+import os
+import pathlib
 import pickle
 from unittest.mock import patch
 
@@ -5,6 +7,10 @@ import pandas as pd
 from google.cloud import bigquery
 
 from lightning_gcp.bigquery import BigQueryWork
+
+path = os.path.join(pathlib.Path.home(), ".lightning-store")
+if not os.path.exists(path):
+    os.makedirs(path)
 
 
 @patch("google.cloud.bigquery.Client", autospec=True)
