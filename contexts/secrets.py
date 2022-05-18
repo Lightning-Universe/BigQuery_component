@@ -8,14 +8,23 @@ from pathlib import Path
 
 from google.oauth2 import service_account
 
-FILEPATH = os.path.join(str(Path.home()), ".lightning.secrets/.secrets.json")
 
-try:
-    __SECRETS = json.load(open(FILEPATH))
-except FileNotFoundError as error:
-    FILEPATH = os.path.join(os.path.dirname(__file__), ".qa.secrets.json")
-    logging.error(f"{error}. Using {FILEPATH}.")
-    __SECRETS = json.load(open(FILEPATH))
+def get_secrets():
+    filepaths = [
+        os.path.join(os.path.dirname(__file__), ".secrets.json"),
+        os.path.join(str(Path.home()), ".lightning.secrets/.secrets.json"),
+        os.path.join(os.path.dirname(__file__), ".qa.secrets.json"),
+    ]
+
+    for filepath in filepaths:
+        if Path(filepath).is_file():
+            logging.info(f"Using secrets from {filepath}")
+            return json.load(open(filepath))
+
+    logging.error(f"Did not find secrets in {filepaths}")
+
+
+__SECRETS = get_secrets()
 
 LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS = (
     service_account.Credentials.from_service_account_info(
