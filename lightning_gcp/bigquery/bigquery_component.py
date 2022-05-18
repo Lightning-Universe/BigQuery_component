@@ -1,7 +1,10 @@
+import os
+import pathlib
+import pickle
+import time
 from typing import Optional
 
 import lightning as L
-import pandas as pd
 from google.cloud import bigquery
 
 import contexts
@@ -21,11 +24,14 @@ class BigQueryWork(L.LightningWork):
     .. code:: python
     """
 
+    LOCAL_STORE_DIR = os.path.join(pathlib.Path.home(), ".lightning-store")
+
     def __init__(
         self,
         query: str = None,
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
+        data_dir: Optional[str] = None,
         *args,
         **kwargs,
     ) -> None:
@@ -33,6 +39,10 @@ class BigQueryWork(L.LightningWork):
         self.query = query
         self.project = project
         self.location = location
+        self.result_path = os.path.join(
+            data_dir or self.LOCAL_STORE_DIR,
+            ".".join([__name__, str(time.time()), "pkl"]),
+        )
 
     def run(
         self,
@@ -43,7 +53,7 @@ class BigQueryWork(L.LightningWork):
             dict
         ] = contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
         to_dataframe: Optional[bool] = False,
-    ) -> pd.DataFrame or bigquery.client.Client.query:
+    ) -> None:
 
         self.query = query or self.query
         self.project = project or self.project
@@ -60,6 +70,9 @@ class BigQueryWork(L.LightningWork):
         cursor = client.query(self.query, location=location)
 
         if to_dataframe:
-            return cursor.result().to_dataframe()
+            result = cursor.result().to_dataframe()
         else:
-            return cursor
+            result = tuple(res.values() for res in cursor.result())
+
+        with open(self.result_path, "wb") as _file:
+            pickle.dump(result, _file)

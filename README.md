@@ -35,13 +35,20 @@ class GetHackerNewsArticles(L.LightningFlow):
                 `{dataset}.{table}`
         """
 
-        # Result as a generator
-        result = self.client.run(query=query, project=project, location=location, credentials=credentials)
+        self.client.run(query=query, project=project, location=location, credentials=credentials)
 
-        # Result as a dataframe
-        result = self.client.run(
-            query=query, project=project, location=location, credentials=credentials, to_dataframe=True
-        )
+        # The data will be stored in the works result path as tuple serialized in a pickled file.
+        # To use it in another work, deserialize it as follows.
+        # with open(self.client.result_path, 'rb') as _file:
+        #   data = pickle.load(_file)
+        self.client.result_path
+
+        self.client.run(query=query, project=project, location=location, credentials=credentials, to_dataframe=True)
+        # The data will be stored in the works result path as a pandas DataFrame in a pickled file.
+        # To use it in another work, deserialize it as follows.
+        # with open(self.client.result_path, 'rb') as _file:
+        #   data = pickle.load(_file)
+        self.client.result_path
 ```
 
 2. Add or create `~/.lighning.secrets/.secrets.json` with the following information with passing credentials in as a run parameter.

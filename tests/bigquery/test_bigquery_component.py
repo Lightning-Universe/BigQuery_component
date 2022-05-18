@@ -1,3 +1,4 @@
+import pickle
 from unittest.mock import patch
 
 import pandas as pd
@@ -23,7 +24,7 @@ def test_instantiation(mock_bigquery):
 
 class MockResult(tuple):
     def values(self):
-        return ("foo", "bar")
+        return (("foo", "bar"),)
 
     def to_dataframe(self):
         return pd.DataFrame(columns=[1, 2], data=[["foo", "bar"]])
@@ -37,10 +38,13 @@ def test_query():
     with patch.object(bigquery.Client, "query", return_value=MockQuery()) as _:
 
         work = BigQueryWork()
-        result = work.run(query="fakequery", project="a", location="loc")
-        expected = ["foo", "bar"]
-        actual = [res.values() for res in result.result()][0]
-        assert expected == [i for i in actual]
+        work.run(query="fakequery", project="a", location="loc")
+        with open(work.result_path, "rb") as _file:
+            data = pickle.load(_file)
+
+        expected = ("foo", "bar")
+        actual = data[0][0]
+        assert expected == actual
 
 
 def test_get_dataframe():
@@ -50,12 +54,15 @@ def test_get_dataframe():
 
     with patch.object(bigquery.Client, "query", return_value=MockQuery()) as _:
         work = BigQueryWork()
-        result = work.run(
+        work.run(
             query="""select 2""",
             project="project",
             location="us-east1",
             to_dataframe=True,
         )
+        with open(work.result_path, "rb") as _file:
+            result = pickle.load(_file)
+
         expected = type(pd.DataFrame())
         actual = type(result)
         assert expected == actual
