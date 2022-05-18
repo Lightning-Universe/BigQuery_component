@@ -1,11 +1,11 @@
 import os
-import pathlib
 import pickle
 import time
 from typing import Optional
 
 import lightning as L
 from google.cloud import bigquery
+from lightning.storage.path import Path
 
 import contexts
 
@@ -24,7 +24,7 @@ class BigQueryWork(L.LightningWork):
     .. code:: python
     """
 
-    LOCAL_STORE_DIR = os.path.join(pathlib.Path.home(), ".lightning-store")
+    LOCAL_STORE_DIR = Path(os.path.join(Path.home(), ".lightning-store"))
 
     def __init__(
         self,
@@ -32,16 +32,16 @@ class BigQueryWork(L.LightningWork):
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
         data_dir: Optional[str] = None,
-        *args,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
+    ):
+        super().__init__()
         self.query = query
         self.project = project
         self.location = location
-        self.result_path = os.path.join(
-            data_dir or self.LOCAL_STORE_DIR,
-            ".".join([__name__, str(time.time()), "pkl"]),
+        self.result_path = Path(
+            os.path.join(
+                data_dir or self.LOCAL_STORE_DIR,
+                ".".join([__name__, str(time.time()), "pkl"]),
+            )
         )
 
     def run(
