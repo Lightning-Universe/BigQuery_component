@@ -32,8 +32,10 @@ class BigQueryWork(L.LightningWork):
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
         data_dir: Optional[str] = None,
+        *args,
+        **kwargs,
     ):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.query = query
         self.project = project
         self.location = location
