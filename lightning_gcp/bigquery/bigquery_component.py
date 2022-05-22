@@ -1,7 +1,7 @@
 import os
 import pickle
 import time
-from typing import Optional
+from typing import List, Optional
 
 import lightning as L
 from google.cloud import bigquery
@@ -55,19 +55,32 @@ class BigQueryWork(L.LightningWork):
             dict
         ] = contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
         to_dataframe: Optional[bool] = False,
+        json_rows: Optional[List] = None,
+        table: Optional[str] = None,
     ) -> None:
 
         self.query = query or self.query
         self.project = project or self.project
         self.location = location or self.location
 
-        if self.query is None:
-            raise ValueError(f"SQL query is required. Observed: {self.query}")
+        if self.query is None and json_rows is None:
+            raise ValueError(
+                f"`query` or `rows_to_insert` is required. Found: {self.query}"
+            )
 
         if credentials is None:
             client = bigquery.Client(project=project)
         else:
             client = bigquery.Client(project=project, credentials=credentials)
+
+        if json_rows is not None:
+            if table is None:
+                raise AttributeError(
+                    "Parameter `table` is required when json_rows is provided"
+                    f"Instead target_table is {table}"
+                )
+            client.insert_rows_json(table=table, json_rows=json_rows)
+            return
 
         cursor = client.query(self.query, location=location)
 
