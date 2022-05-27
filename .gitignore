@@ -131,4 +131,5 @@ dmypy.json
 
 
 .idea/
-contexts/.secrets.json
+.shared/
+.storage/
