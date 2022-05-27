@@ -16,6 +16,11 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 
+_fp = os.path.join(os.path.dirname(__file__), "../.qa.secrets.json")
+with open(_fp) as _file:
+    FAKE_CREDENTIALS = json.load(_file)
+
+
 @patch("google.cloud.bigquery.Client", autospec=True)
 def test_instantiation(mock_bigquery):
     """Test that the work can get instantiated."""
@@ -23,6 +28,7 @@ def test_instantiation(mock_bigquery):
         sqlquery="""select 2""",
         project="lightning",
         location="us-east1",
+        credentials=FAKE_CREDENTIALS,
     )
 
     expected = """select 2"""
@@ -53,6 +59,7 @@ def test_get_dataframe():
             project="project",
             location="us-east1",
             to_dataframe=True,
+            credentials=FAKE_CREDENTIALS,
         )
         with open(work.result_path, "rb") as _file:
             result = pickle.load(_file)
@@ -87,16 +94,12 @@ class BQReader(L.LightningFlow):
 
     def run(self):
 
-        _fp = os.path.join(os.path.dirname(__file__), "../.qa.secrets.json")
-        with open(_fp) as _file:
-            credentials = json.load(_file)
-
         self.client.query(
             sqlquery="fakequery",
             project="project",
             location="us-east-1",
             to_dataframe=True,
-            credentials=credentials,
+            credentials=FAKE_CREDENTIALS,
         )
 
         if self.client.has_succeeded:
