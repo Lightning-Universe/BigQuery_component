@@ -24,7 +24,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     author="Eric Chea",
     url="https://github.com/PyTorchLightning/google-cloud",
-    packages=setuptools.find_packages(where="lightning_bigquery*"),
+    packages=["lightning_bigquery"],
     install_requires=install_reqs,
     dependency_links=dependency_links,
     extras_require={
