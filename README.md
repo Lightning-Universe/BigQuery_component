@@ -1,55 +1,48 @@
 ### About
 
-This component gives you the ability to interface with gcp.
+This component lets you run queries against a BigQuery warehouse.
 
 ### Use the component
 
-Run a query
+To Run a query
 
 ```python
-from typing import List
-import lightning as L
-from lightning_bigquery.bigquery import BigQueryWork
 import pickle
 
+import lightning as L
+from lightning_bigquery import BigQuery
 
 class ReadResults(L.LightningWork):
     def run(self, result_filepath):
         with open(result_filepath, "rb") as _file:
             data = pickle.load(_file)
 
-            # Do something with the data
-            data.head()
-
+        # Print top results from the dataframe
+        print(data.head())
 
 class GetHackerNewsArticles(L.LightningFlow):
-    def __init__(self, project, location, credentials):
+    def __init__(self, project, location):
         super().__init__()
-        self.client = BigQueryWork(project=project, location=location, credentials=credentials)
+        self.bq_client = BigQuery(project=project, location=location)
         self.reader = ReadResults()
 
     def run(self):
-        query = """select title, score from `bigquery-public-data.hacker_news.stories` limit 5"""
+        query = """select title, score from `bigquery-public-data.hacker_news.stories` limit 20"""
 
-        self.client.query(query, to_dataframe=True)
-        if self.client.has_succeeded:
-            self.reader.run(self.client.result_path)
+        self.bq_client.query(query, to_dataframe=True)
+
+        if self.bq_client.has_succeeded:
+            # The results from the query are saved as a pickled file.
+            self.reader.run(self.bq_client.result_path)
+
+app = L.LightningApp(GetHackerNewsArticles(project="grid-data-prod", location="US"), debug=True)
 ```
 
 ### Install
-
+Run the following to install:
 ```shell
 git clone https://github.com/PyTorchLightning/google-cloud.git
-cd lai-bigquery
-pip install -e .
-```
-
-For mac users
-
-```shell
-export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true
-export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
-git clone https://github.com/PyTorchLightning/google-cloud.git
-cd lai-bigquery
+cd LAI-bigquery
+pip install -r requirements.txt
 pip install -e .
 ```

@@ -12,15 +12,60 @@ from lightning.storage.path import Path
 class BigQuery(L.LightningWork):
     """Task for running queries on BigQuery.
 
-    Args:
-        query: str, query that will be executed on BigQuery.
-        project: str, the project identifier that BigQuery dataset exists in.
-                 Default = None.
-        location: str, the location that the BigQuery dataset exists in.
+    To enable this:
+    1. select an existing or create a new "project" https://console.cloud.google.com/projectselector2/home/
+    2. enable billing for the project if it doesn't already have it
+    3. enable the BigQuery API for the project at https://console.cloud.google.com/apis/library/bigquery.googleapis.com
+
 
     Example:
+    .. code::python
 
-    .. code:: python
+    import lightning as L
+    from lightning_bigquery.bigquery import BigQueryWork
+    import pickle
+
+
+    class ReadResults(L.LightningWork):
+        def run(self, result_filepath):
+            with open(result_filepath, "rb") as _file:
+                data = pickle.load(_file)
+
+                # Do something with the data
+                data.head()
+
+
+    class GetHackerNewsArticles(L.LightningFlow):
+        def __init__(self, project, location, credentials):
+            super().__init__()
+            self.client = BigQueryWork(project=project, location=location, credentials=credentials)
+            self.reader = ReadResults()
+
+        def run(self):
+            query = '''select title, score from `bigquery-public-data.hacker_news.stories` limit 5'''
+
+            self.client.query(query, to_dataframe=True)
+            if self.client.has_succeeded:
+                self.reader.run(self.client.result_path)
+
+
+    query: str, query that will be executed on BigQuery.
+    project: str, the Google Cloud project that the BigQuery warehouse belongs to. Each Google Cloud Project
+             can only have on BigQuery. To get your "project ID" go to the Google API Console
+             https://console.cloud.google.com/bigquery, select the drop-down from the top navigation bar,
+             and select your project ID.  By default, you're presented with the "RECENT" tab, navigate to the "ALL" tab
+             to get a list of all projects you have access to in your organization.
+             Compared to the more familiar database organized hierarchies like
+             <DATABASE>.<SCHEMA>.<TABLE>; in BigQuery DATABASE="project", SCHEMA="dataset", and TABLE=table.
+    region: str, this is referred to as a "location" in Google Cloud. To get this go to
+            https://console.cloud.google.com/bigquery, select your "dataset", and from the pane that appears
+            when the dataset is selected copy the value for "Data Location".
+    credentials: dict, if no credentials are provided, and you've authenticated into google-cloud API through another
+            mechanism (such as the google cloud cli) then those credentials will be used.  To get credentials that
+            for automation scripts go to https://console.cloud.google.com/iam-admin/serviceaccounts > select the project
+            and locate the service account you want to use > select "Manage keys" from the "Actions" column >
+            select "ADD KEY" > "Create new key" > select "JSON" for key type and select "CREATE" > you'll receive a
+            JSON file that can be used as a python dictionary.
     """
 
     LOCAL_STORE_DIR = Path(os.path.join(Path.home(), ".lightning-store"))
@@ -30,7 +75,6 @@ class BigQuery(L.LightningWork):
         sqlquery: str = None,
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
-        data_dir: Optional[str] = None,
         credentials: Optional[dict] = None,
         *args,
         **kwargs,
@@ -41,7 +85,7 @@ class BigQuery(L.LightningWork):
         self.location = location
         self.result_path = Path(
             os.path.join(
-                data_dir or self.LOCAL_STORE_DIR,
+                self.LOCAL_STORE_DIR,
                 ".".join([__name__, str(time.time()), "pkl"]),
             )
         )
@@ -54,6 +98,8 @@ class BigQuery(L.LightningWork):
         location: Optional[str] = None,
         to_dataframe: Optional[bool] = False,
         credentials: Optional[dict] = None,
+        *args,
+        **kwargs,
     ):
         self.run(
             sqlquery=sqlquery,
@@ -61,9 +107,11 @@ class BigQuery(L.LightningWork):
             location=location,
             to_dataframe=to_dataframe,
             credentials=credentials,
+            *args,
+            **kwargs,
         )
 
-    def insert(self, json_rows: List, table: str):
+    def insert(self, json_rows: List, table: str, *args, **kwargs):
         self.run(json_rows=json_rows, table=table)
 
     def run(
