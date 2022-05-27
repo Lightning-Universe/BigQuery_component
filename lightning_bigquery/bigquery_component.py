@@ -53,12 +53,14 @@ class BigQuery(L.LightningWork):
         project: Optional[str] = None,
         location: Optional[str] = None,
         to_dataframe: Optional[bool] = False,
+        credentials: Optional[dict] = None,
     ):
         self.run(
             sqlquery=sqlquery,
             project=project,
             location=location,
             to_dataframe=to_dataframe,
+            credentials=credentials,
         )
 
     def insert(self, json_rows: List, table: str):
@@ -100,7 +102,6 @@ class BigQuery(L.LightningWork):
                     f"Instead target_table is {table}"
                 )
             client.insert_rows_json(table=table, json_rows=json_rows)
-            return
 
         cursor = client.query(sqlquery, location=location)
 

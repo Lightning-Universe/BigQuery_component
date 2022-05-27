@@ -74,9 +74,9 @@ class ReaderWork(L.LightningWork):
 
 
 class PatchedBigQuery(BigQuery):
-    def query(self, *args, **kwargs):
+    def run(self, *args, **kwargs):
         with patch.object(bq.Client, "query", return_value=MockQuery()) as _:
-            super().query(*args, **kwargs)
+            super().run(*args, **kwargs)
 
 
 class BQReader(L.LightningFlow):
@@ -91,7 +91,7 @@ class BQReader(L.LightningFlow):
         with open(_fp) as _file:
             credentials = json.load(_file)
 
-        self.client.run(
+        self.client.query(
             sqlquery="fakequery",
             project="project",
             location="us-east-1",
@@ -110,7 +110,7 @@ class BQReader(L.LightningFlow):
                 self._exit()
 
 
-def xtest_query_from_app():
+def test_query_from_app():
     """Test that the BQ work runs end-to-end in a typical app flow."""
     app = L.LightningApp(BQReader(), debug=True)
     MultiProcessRuntime(app, start_server=False).dispatch()
