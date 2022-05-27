@@ -14,12 +14,11 @@ import pickle
 
 
 class ReadResults(L.LightningWork):
-    def __init__(self):
-        self.info = info
-
-    def run(self):
-        with open(self.client.result_path, "rb") as _file:
+    def run(self, result_filepath):
+        with open(result_filepath, "rb") as _file:
             data = pickle.load(_file)
+
+            # Do something with the data
             data.head()
 
 
@@ -27,11 +26,14 @@ class GetHackerNewsArticles(L.LightningFlow):
     def __init__(self, project, location, credentials):
         super().__init__()
         self.client = BigQueryWork(project=project, location=location, credentials=credentials)
+        self.reader = ReadResults()
 
     def run(self):
         query = """select title, score from `bigquery-public-data.hacker_news.stories` limit 5"""
 
         self.client.query(query, to_dataframe=True)
+        if self.client.has_succeeded:
+            self.reader.run(self.client.result_path)
 ```
 
 ### Install
