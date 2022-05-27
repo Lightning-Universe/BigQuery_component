@@ -68,7 +68,9 @@ class BigQuery(L.LightningWork):
             JSON file that can be used as a python dictionary.
     """
 
-    LOCAL_STORE_DIR = Path(os.path.join(Path.home(), ".lightning-store"))
+    LOCAL_STORE_DIR = Path(os.path.join(Path.cwd(), ".lightning-store"))
+    if not Path.exists(LOCAL_STORE_DIR):
+        Path.makedir(LOCAL_STORE_DIR)
 
     def __init__(
         self,
