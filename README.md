@@ -1,3 +1,13 @@
+<!---:lai-name: BigQuery--->
+<div align="center">
+<img src="static/big-query-icon.png" width="200px">
+
+    A Lightning component to run queries on BigQuery.
+    ______________________________________________________________________
+
+![Tests](https://github.com/PyTorchLightning/LAI-bigquery/actions/workflows/ci-testing.yml/badge.svg)
+</div>
+
 ### About
 
 This component gives you the ability to interface with gcp.
