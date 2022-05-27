@@ -17,14 +17,14 @@ with open("tests/requirements.txt") as _file:
     test_reqs = [req for req in _file.readlines()]
 
 setuptools.setup(
-    name="lightning_gcp",
+    name="lightning_bigquery",
     version="0.0.1",
     description="Interface between GCP and Lightning.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Eric Chea",
     url="https://github.com/PyTorchLightning/google-cloud",
-    packages=setuptools.find_packages(where="lightning_gcp*"),
+    packages=setuptools.find_packages(where="lightning_bigquery*"),
     install_requires=install_reqs,
     dependency_links=dependency_links,
     extras_require={

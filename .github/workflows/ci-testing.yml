@@ -60,7 +60,7 @@ jobs:
 
     - name: Tests
       run: |
-        coverage run --source lightning_gcp -m pytest lightning_gcp tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source lightning_bigquery -m pytest lightning_bigquery tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Statistics
       if: success()
