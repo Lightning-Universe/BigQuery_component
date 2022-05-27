@@ -1,7 +1,7 @@
 <!---:lai-name: BigQuery--->
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/PyTorchLightning/LAI-bigquery/main/static/big-query-icon.png?token=GHSAT0AAAAAABO3TFPDRX7HG3ZQGMMVQ2GQYURG5ZA" width="200px">
+<img src="https://raw.githubusercontent.com/PyTorchLightning/LAI-bigquery/main/static/big-query-icon.png" width="200px">
 
 ```
 A Lightning component to run queries on BigQuery.
