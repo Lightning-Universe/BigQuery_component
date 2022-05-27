@@ -5,12 +5,11 @@ from typing import List, Optional
 
 import lightning as L
 from google.cloud import bigquery
+from google.oauth2.service_account import Credentials as SACredentials
 from lightning.storage.path import Path
 
-import contexts
 
-
-class BigQueryWork(L.LightningWork):
+class BigQuery(L.LightningWork):
     """Task for running queries on BigQuery.
 
     Args:
@@ -28,15 +27,16 @@ class BigQueryWork(L.LightningWork):
 
     def __init__(
         self,
-        query: str = None,
+        sqlquery: str = None,
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
         data_dir: Optional[str] = None,
+        credentials: Optional[dict] = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.query = query
+        self.sqlquery = sqlquery
         self.project = project
         self.location = location
         self.result_path = Path(
@@ -45,33 +45,53 @@ class BigQueryWork(L.LightningWork):
                 ".".join([__name__, str(time.time()), "pkl"]),
             )
         )
+        self.credentials = credentials
+
+    def query(
+        self,
+        sqlquery: str,
+        project: Optional[str] = None,
+        location: Optional[str] = None,
+        to_dataframe: Optional[bool] = False,
+    ):
+        self.run(
+            sqlquery=sqlquery,
+            project=project,
+            location=location,
+            to_dataframe=to_dataframe,
+        )
+
+    def insert(self, json_rows: List, table: str):
+        self.run(json_rows=json_rows, table=table)
 
     def run(
         self,
-        query: str = None,
+        sqlquery: str = None,
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
-        credentials: Optional[
-            dict
-        ] = contexts.secrets.LIGHTNING__BQ_SERVICE_ACCOUNT_CREDS,
+        credentials: Optional[dict] = None,
         to_dataframe: Optional[bool] = False,
         json_rows: Optional[List] = None,
         table: Optional[str] = None,
     ) -> None:
 
-        self.query = query or self.query
-        self.project = project or self.project
-        self.location = location or self.location
+        sqlquery = sqlquery or self.sqlquery
+        project = project or self.project
+        location = location or self.location
+        credentials = credentials or self.credentials
 
-        if self.query is None and json_rows is None:
+        if sqlquery is None and json_rows is None:
             raise ValueError(
-                f"`query` or `rows_to_insert` is required. Found: {self.query}"
+                f"`query` or `rows_to_insert` is required. Found: {sqlquery}"
             )
 
         if credentials is None:
             client = bigquery.Client(project=project)
         else:
-            client = bigquery.Client(project=project, credentials=credentials)
+            _credentials = SACredentials.from_service_account_info(
+                credentials,
+            )
+            client = bigquery.Client(project=project, credentials=_credentials)
 
         if json_rows is not None:
             if table is None:
@@ -82,7 +102,7 @@ class BigQueryWork(L.LightningWork):
             client.insert_rows_json(table=table, json_rows=json_rows)
             return
 
-        cursor = client.query(self.query, location=location)
+        cursor = client.query(sqlquery, location=location)
 
         if to_dataframe:
             result = cursor.result().to_dataframe()
