@@ -51,7 +51,7 @@ app = L.LightningApp(GetHackerNewsArticles(project="grid-data-prod", location="U
 ### Install
 Run the following to install:
 ```shell
-git clone https://github.com/PyTorchLightning/google-cloud.git
+git clone https://github.com/PyTorchLightning/LAI-bigquery
 cd LAI-bigquery
 pip install -r requirements.txt
 pip install -e .
