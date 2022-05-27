@@ -133,3 +133,4 @@ dmypy.json
 .idea/
 .shared/
 .storage/
+.lightning-store/
