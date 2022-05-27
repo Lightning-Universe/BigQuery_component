@@ -88,7 +88,7 @@ pip install -e .
 
 ### Tests
 
-To run unit tests locally, run pytest from the :
+To run unit tests locally:
 
 ```shell
 # From the root level of the package (LAI-bigquery)
