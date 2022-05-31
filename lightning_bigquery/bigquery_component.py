@@ -9,6 +9,16 @@ from google.oauth2.service_account import Credentials as SACredentials
 from lightning.storage.path import Path
 
 
+def get_client(project: str, credentials: dict):
+    if credentials is None:
+        return bigquery.Client(project=project)
+    else:
+        _credentials = SACredentials.from_service_account_info(
+            credentials,
+        )
+        return bigquery.Client(project=project, credentials=_credentials)
+
+
 class BigQuery(L.LightningWork):
     """Task for running queries on BigQuery.
 
@@ -113,6 +123,8 @@ class BigQuery(L.LightningWork):
         to_dataframe: Optional[bool] = False,
         credentials: Optional[dict] = None,
     ):
+
+        sqlquery = sqlquery or self.sqlquery
         project = project or self.project
         location = location or self.location
         credentials = credentials or self.credentials
@@ -140,7 +152,7 @@ class BigQuery(L.LightningWork):
         credentials,
     ):
 
-        client = self.get_client(project, credentials)
+        client = get_client(project, credentials)
         cursor = client.query(sqlquery, location=location)
 
         if to_dataframe:
@@ -154,11 +166,11 @@ class BigQuery(L.LightningWork):
     def insert(
         self,
         json_rows: Union[List, L.storage.Payload],
+        project: str,
         table: str,
-        project: str = None,
         credentials: Optional[dict] = None,
         *args,
-        **kwargs,
+        **kwargs
     ):
 
         project = project or self.project
@@ -180,11 +192,9 @@ class BigQuery(L.LightningWork):
         )
 
     def _insert(self, json_rows, project, table, credentials):
-
         if isinstance(json_rows, L.storage.Payload):
             json_rows = json_rows.value
-
-        client = self.get_client(project, credentials)
+        client = get_client(project, credentials)
         client.insert_rows_json(table=table, json_rows=json_rows)
 
     def run(self, action: str = "query", *args, **kwargs):
@@ -193,12 +203,3 @@ class BigQuery(L.LightningWork):
             self._query(*args, **kwargs)
         elif action == "insert":
             self._insert(*args, **kwargs)
-
-    def get_client(self, project: str, credentials: dict):
-        if credentials is None:
-            return bigquery.Client(project=project)
-        else:
-            _credentials = SACredentials.from_service_account_info(
-                credentials,
-            )
-            return bigquery.Client(project=project, credentials=_credentials)
