@@ -9,6 +9,16 @@ from google.oauth2.service_account import Credentials as SACredentials
 from lightning.storage.path import Path
 
 
+def get_client(project: str, credentials: dict):
+    if credentials is None:
+        return bigquery.Client(project=project)
+    else:
+        _credentials = SACredentials.from_service_account_info(
+            credentials,
+        )
+        return bigquery.Client(project=project, credentials=_credentials)
+
+
 class BigQuery(L.LightningWork):
     """Task for running queries on BigQuery.
 
@@ -114,65 +124,31 @@ class BigQuery(L.LightningWork):
         location: Optional[str] = None,
         to_dataframe: Optional[bool] = False,
         credentials: Optional[dict] = None,
-        *args,
-        **kwargs,
     ):
-        self.run(
-            sqlquery=sqlquery,
-            project=project,
-            location=location,
-            to_dataframe=to_dataframe,
-            credentials=credentials,
-            *args,
-            **kwargs,
-        )
-
-    def insert(
-        self, json_rows: Union[List, L.storage.Payload], table: str, *args, **kwargs
-    ):
-        self.run(json_rows=json_rows, table=table, *args, **kwargs)
-
-    def run(
-        self,
-        sqlquery: str = None,
-        project: Optional[str] = None,
-        location: Optional[str] = "us-east1",
-        credentials: Optional[dict] = None,
-        to_dataframe: Optional[bool] = False,
-        json_rows: Optional[Union[List, L.storage.Payload]] = None,
-        table: Optional[str] = None,
-    ) -> None:
-
-        if isinstance(json_rows, L.storage.Payload):
-            json_rows = json_rows.value
-
         sqlquery = sqlquery or self.sqlquery
         project = project or self.project
         location = location or self.location
         credentials = credentials or self.credentials
 
-        if sqlquery is None and json_rows is None:
-            raise ValueError(
-                f"`query` or `rows_to_insert` is required. Found: {sqlquery}"
-            )
+        self.run(
+            action="query",
+            sqlquery=sqlquery,
+            project=project,
+            location=location,
+            to_dataframe=to_dataframe,
+            credentials=credentials,
+        )
 
-        if credentials is None:
-            client = bigquery.Client(project=project)
-        else:
-            _credentials = SACredentials.from_service_account_info(
-                credentials,
-            )
-            client = bigquery.Client(project=project, credentials=_credentials)
+    def _query(
+        self,
+        sqlquery,
+        project,
+        location,
+        to_dataframe,
+        credentials,
+    ):
 
-        if json_rows is not None:
-            if table is None:
-                raise AttributeError(
-                    "Parameter `table` is required when json_rows is provided"
-                    f"Instead target_table is {table}"
-                )
-            client.insert_rows_json(table=table, json_rows=json_rows)
-            return
-
+        client = get_client(project, credentials)
         cursor = client.query(sqlquery, location=location)
 
         if to_dataframe:
@@ -182,3 +158,39 @@ class BigQuery(L.LightningWork):
 
         with open(self.result_path, "wb") as _file:
             pickle.dump(result, _file)
+
+    def insert(
+        self,
+        json_rows: Union[List, L.storage.Payload],
+        project: str,
+        table: str,
+        credentials: Optional[dict] = None,
+        *args,
+        **kwargs
+    ):
+
+        project = project or self.project
+        credentials = credentials or self.credentials
+
+        self.run(
+            action="insert",
+            json_rows=json_rows,
+            credentials=credentials,
+            project=project,
+            table=table,
+            *args,
+            **kwargs
+        )
+
+    def _insert(self, json_rows, project, table, credentials):
+        if isinstance(json_rows, L.storage.Payload):
+            json_rows = json_rows.value
+        client = get_client(project, credentials)
+        client.insert_rows_json(table=table, json_rows=json_rows)
+
+    def run(self, action: str = "query", *args, **kwargs):
+
+        if action == "query":
+            self._query(*args, **kwargs)
+        elif action == "insert":
+            self._insert(*args, **kwargs)
