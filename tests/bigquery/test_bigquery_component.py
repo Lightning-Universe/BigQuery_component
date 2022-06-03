@@ -81,9 +81,13 @@ class ReaderWork(L.LightningWork):
 
 
 class PatchedBigQuery(BigQuery):
-    def run(self, *args, **kwargs):
+    def _query(self, *args, **kwargs):
         with patch.object(bq.Client, "query", return_value=MockQuery()) as _:
-            super().run(*args, **kwargs)
+            return super()._query(*args, **kwargs)
+
+    def _insert(self, *args, **kwargs):
+        with patch.object(bq.Client, "insert_rows_json") as _:
+            return super()._insert(*args, **kwargs)
 
 
 class BQReader(L.LightningFlow):
@@ -108,7 +112,6 @@ class BQReader(L.LightningFlow):
 
             self.reader.run(self.client.result_path)
 
-            print(self.reader.has_succeeded)
             if self.reader.has_succeeded:
                 self._exit()
 
@@ -116,4 +119,32 @@ class BQReader(L.LightningFlow):
 def test_query_from_app():
     """Test that the BQ work runs end-to-end in a typical app flow."""
     app = L.LightningApp(BQReader(), debug=True)
+    MultiProcessRuntime(app, start_server=False).dispatch()
+
+
+class BQInserter(L.LightningFlow):
+    def __init__(self):
+        super().__init__()
+        self.client = PatchedBigQuery()
+
+    def run(self):
+
+        self.client.insert(
+            json_rows=[{"foo": "bar"}, {"fooz": "barz"}],
+            project="project",
+            table="hacker_news.fake_table",
+            credentials=FAKE_CREDENTIALS,
+        )
+
+        if self.client.has_succeeded:
+
+            # No writing should occur
+            assert not Path(self.client.result_path).is_file()
+
+            self._exit()
+
+
+def test_insert_from_app():
+    """Test that the BQ work runs end-to-end in a typical app flow."""
+    app = L.LightningApp(BQInserter(), debug=True)
     MultiProcessRuntime(app, start_server=False).dispatch()
