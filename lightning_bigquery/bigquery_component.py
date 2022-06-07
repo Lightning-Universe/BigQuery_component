@@ -128,7 +128,7 @@ class BigQuery(L.LightningWork):
         )
 
     def insert(self, json_rows: List, table: str, *args, **kwargs):
-        self.run(json_rows=json_rows, table=table)
+        self.run(json_rows=json_rows, table=table, *args, **kwargs)
 
     def run(
         self,
@@ -140,6 +140,9 @@ class BigQuery(L.LightningWork):
         json_rows: Optional[List] = None,
         table: Optional[str] = None,
     ) -> None:
+
+        if isinstance(json_rows, L.storage.Payload):
+            json_rows = json_rows.value
 
         sqlquery = sqlquery or self.sqlquery
         project = project or self.project
@@ -166,6 +169,7 @@ class BigQuery(L.LightningWork):
                     f"Instead target_table is {table}"
                 )
             client.insert_rows_json(table=table, json_rows=json_rows)
+            return
 
         cursor = client.query(sqlquery, location=location)
 
