@@ -1,7 +1,7 @@
 import os
 import pickle
 import time
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import lightning as L
 from google.cloud import bigquery
@@ -127,8 +127,10 @@ class BigQuery(L.LightningWork):
             **kwargs,
         )
 
-    def insert(self, json_rows: List, table: str, *args, **kwargs):
-        self.run(json_rows=json_rows, table=table)
+    def insert(
+        self, json_rows: Union[List, L.storage.Payload], table: str, *args, **kwargs
+    ):
+        self.run(json_rows=json_rows, table=table, *args, **kwargs)
 
     def run(
         self,
@@ -137,9 +139,12 @@ class BigQuery(L.LightningWork):
         location: Optional[str] = "us-east1",
         credentials: Optional[dict] = None,
         to_dataframe: Optional[bool] = False,
-        json_rows: Optional[List] = None,
+        json_rows: Optional[Union[List, L.storage.Payload]] = None,
         table: Optional[str] = None,
     ) -> None:
+
+        if isinstance(json_rows, L.storage.Payload):
+            json_rows = json_rows.value
 
         sqlquery = sqlquery or self.sqlquery
         project = project or self.project
@@ -166,6 +171,7 @@ class BigQuery(L.LightningWork):
                     f"Instead target_table is {table}"
                 )
             client.insert_rows_json(table=table, json_rows=json_rows)
+            return
 
         cursor = client.query(sqlquery, location=location)
 
