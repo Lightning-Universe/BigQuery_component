@@ -22,9 +22,27 @@ To Run a query
 
 ```python
 import pickle
-
 import lightning as L
 from lightning_bigquery import BigQuery
+
+
+class YourComponent(L.LightningFlow):
+    def __init__(self):
+        super().__init__()
+        self.bq_client = BigQuery(
+            project="<YOUR GOOGLE PROJECT ID>",
+            location="<LOCATION OF DATASET>",  # Region where the dataset is located.
+            credential="<SERVICE ACCOUNT KEY>",  # Service account credentials
+        )
+        self.reader = ReadResults()
+
+    def run(self):
+        query = "select * from <BigQuery table>"
+        self.bq_client.query(query, to_dataframe=True)
+
+        if self.bq_client.has_succeeded:
+            # The results from the query are saved as a pickled file.
+            self.reader.run(self.bq_client.result_path)
 
 
 class ReadResults(L.LightningWork):
@@ -36,43 +54,7 @@ class ReadResults(L.LightningWork):
         print(data.head())
 
 
-class GetHackerNewsArticles(L.LightningFlow):
-    def __init__(self, project, location, credentials):
-        super().__init__()
-        self.bq_client = BigQuery(
-            project=project,
-            location=location,
-            credentials=credentials,
-        )
-        self.reader = ReadResults()
-
-    def run(self):
-        query = """
-            select
-                title
-                , score
-            from
-                `bigquery-public-data.hacker_news.stories`
-            limit 20
-        """
-
-        self.bq_client.query(query, to_dataframe=True)
-
-        if self.bq_client.has_succeeded:
-            # The results from the query are saved as a pickled file.
-            self.reader.run(self.bq_client.result_path)
-
-
-app = L.LightningApp(
-    # Refer to BigQuery docstring in lightning_bigquery/bigquery_component for details of parameters
-    # and for those less familiar with Google Cloud, where to get this information
-    GetHackerNewsArticles(
-        project="<YOUR GOOGLE PROJECT ID>",
-        location="<LOCATION OF DATASET>",  # Region where the dataset is located.
-        credential="<SERVICE ACCOUNT KEY>",  # Service account credentials
-    ),
-    debug=True,
-)
+app = L.LightningApp(YourComponent())
 ```
 
 ### Install
