@@ -156,7 +156,7 @@ class BigQuery(L.LightningWork):
         table: str,
         credentials: Optional[dict] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
 
         project = project or self.project
@@ -169,7 +169,7 @@ class BigQuery(L.LightningWork):
             project=project,
             table=table,
             *args,
-            **kwargs
+            **kwargs,
         )
 
     def _insert(self, json_rows, project, table, credentials):
