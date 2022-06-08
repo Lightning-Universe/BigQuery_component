@@ -37,8 +37,8 @@ class YourComponent(L.LightningFlow):
         self.reader = ReadResults()
 
     def run(self):
-        query = "select * from <BigQuery table>"
-        self.bq_client.query(query, to_dataframe=True)
+        sqlquery = "select * from <BigQuery table>"
+        self.bq_client.query(sqlquery, to_dataframe=True)
 
         if self.bq_client.has_succeeded:
             # The results from the query are saved as a pickled file.

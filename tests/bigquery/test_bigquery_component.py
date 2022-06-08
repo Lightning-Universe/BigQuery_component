@@ -25,14 +25,13 @@ with open(_fp) as _file:
 def test_instantiation(mock_bigquery):
     """Test that the work can get instantiated."""
     work = BigQuery(
-        sqlquery="""select 2""",
         project="lightning",
         location="us-east1",
         credentials=FAKE_CREDENTIALS,
     )
 
-    expected = """select 2"""
-    actual = work.sqlquery
+    expected = """lightning"""
+    actual = work.project
 
     assert expected == actual
 

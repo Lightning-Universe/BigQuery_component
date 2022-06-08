@@ -88,7 +88,6 @@ class BigQuery(L.LightningWork):
 
     def __init__(
         self,
-        sqlquery: str = None,
         project: Optional[str] = None,
         location: Optional[str] = "us-east1",
         credentials: Optional[dict] = None,
@@ -96,7 +95,6 @@ class BigQuery(L.LightningWork):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.sqlquery = sqlquery
         self.project = project
         self.location = location
         self.result_path = Path(
@@ -115,10 +113,14 @@ class BigQuery(L.LightningWork):
         to_dataframe: Optional[bool] = False,
         credentials: Optional[dict] = None,
     ):
-        sqlquery = sqlquery or self.sqlquery
         project = project or self.project
         location = location or self.location
         credentials = credentials or self.credentials
+
+        if not credentials:
+            raise ValueError(
+                f"Expected credentials with type dict. Received {credentials}"
+            )
 
         self.run(
             action="query",
@@ -152,8 +154,8 @@ class BigQuery(L.LightningWork):
     def insert(
         self,
         json_rows: Union[List, L.storage.Payload],
-        project: str,
         table: str,
+        project: str = None,
         credentials: Optional[dict] = None,
         *args,
         **kwargs,
@@ -161,6 +163,11 @@ class BigQuery(L.LightningWork):
 
         project = project or self.project
         credentials = credentials or self.credentials
+
+        if not credentials:
+            raise ValueError(
+                f"Expected credentials with type dict. Received {credentials}"
+            )
 
         self.run(
             action="insert",
@@ -176,6 +183,7 @@ class BigQuery(L.LightningWork):
 
         if isinstance(json_rows, L.storage.Payload):
             json_rows = json_rows.value
+
         client = self.get_client(project, credentials)
         client.insert_rows_json(table=table, json_rows=json_rows)
 
