@@ -114,7 +114,6 @@ class BigQuery(L.LightningWork):
         credentials: Optional[dict] = None,
     ):
 
-        sqlquery = sqlquery or self.sqlquery
         project = project or self.project
         location = location or self.location
         credentials = credentials or self.credentials
@@ -155,9 +154,9 @@ class BigQuery(L.LightningWork):
 
     def insert(
         self,
-        json_rows: Union[List, L.storage.Path],
-        project: str,
+        json_rows: Union[List, L.storage.Payload],
         table: str,
+        project: str = None,
         credentials: Optional[dict] = None,
         *args,
         **kwargs,
@@ -185,6 +184,7 @@ class BigQuery(L.LightningWork):
 
         if isinstance(json_rows, L.storage.Payload):
             json_rows = json_rows.value
+
         client = self.get_client(project, credentials)
         client.insert_rows_json(table=table, json_rows=json_rows)
 
