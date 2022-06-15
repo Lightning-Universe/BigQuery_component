@@ -6,8 +6,8 @@ from unittest.mock import patch
 import lightning as L
 import pandas as pd
 from google.cloud import bigquery as bq
-from lightning.runners import MultiProcessRuntime
-from lightning.storage.path import Path
+from lightning.app.runners import MultiProcessRuntime
+from lightning.app.storage.path import Path
 
 from lightning_bigquery import BigQuery
 
