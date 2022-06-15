@@ -6,7 +6,8 @@ from typing import List, Optional, Union
 import lightning as L
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials as SACredentials
-from lightning.storage.path import Path
+from lightning.app.storage import Payload
+from lightning.app.storage.path import Path
 
 
 class BigQuery(L.LightningWork):
@@ -154,7 +155,7 @@ class BigQuery(L.LightningWork):
 
     def insert(
         self,
-        json_rows: Union[List, L.storage.Payload],
+        json_rows: Union[List, Payload],
         table: str,
         project: str = None,
         credentials: Optional[dict] = None,
@@ -182,7 +183,7 @@ class BigQuery(L.LightningWork):
 
     def _insert(self, json_rows, project, table, credentials):
 
-        if isinstance(json_rows, L.storage.Payload):
+        if isinstance(json_rows, Payload):
             json_rows = json_rows.value
 
         client = self.get_client(project, credentials)
