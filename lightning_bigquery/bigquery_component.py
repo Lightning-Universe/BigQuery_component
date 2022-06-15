@@ -9,6 +9,16 @@ from google.oauth2.service_account import Credentials as SACredentials
 from lightning.storage.path import Path
 
 
+def get_client(project: str, credentials: dict):
+    if credentials is None:
+        return bigquery.Client(project=project)
+    else:
+        _credentials = SACredentials.from_service_account_info(
+            credentials,
+        )
+        return bigquery.Client(project=project, credentials=_credentials)
+
+
 class BigQuery(L.LightningWork):
     """Task for running queries on BigQuery.
 
@@ -142,7 +152,7 @@ class BigQuery(L.LightningWork):
         credentials,
     ):
 
-        client = self.get_client(project, credentials)
+        client = get_client(project, credentials)
         cursor = client.query(sqlquery, location=location)
 
         if to_dataframe:
@@ -155,12 +165,12 @@ class BigQuery(L.LightningWork):
 
     def insert(
         self,
-        json_rows: Union[List, L.storage.Payload],
+        json_rows: Union[List, L.storage.Path],
         project: str,
         table: str,
         credentials: Optional[dict] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
 
         project = project or self.project
