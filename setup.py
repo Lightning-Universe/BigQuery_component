@@ -18,7 +18,7 @@ with open("tests/requirements.txt") as _file:
 
 setuptools.setup(
     name="lightning_bigquery",
-    version="0.0.2",
+    version="0.0.3",
     description="Interface between GCP and Lightning.",
     long_description=long_description,
     long_description_content_type="text/markdown",
