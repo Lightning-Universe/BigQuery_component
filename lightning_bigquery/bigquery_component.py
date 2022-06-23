@@ -1,8 +1,10 @@
+import logging
 import os
 import pickle
 import time
 from typing import List, Optional, Union
 
+import google
 import lightning as L
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials as SACredentials
@@ -191,10 +193,13 @@ class BigQuery(L.LightningWork):
 
     def run(self, action: str = "query", *args, **kwargs):
 
-        if action == "query":
-            self._query(*args, **kwargs)
-        elif action == "insert":
-            self._insert(*args, **kwargs)
+        try:
+            if action == "query":
+                self._query(*args, **kwargs)
+            elif action == "insert":
+                self._insert(*args, **kwargs)
+        except google.api_core.exceptions.Forbidden as exc:
+            logging.error(exc)
 
     def get_client(self, project: str, credentials: dict):
         if credentials is None:
