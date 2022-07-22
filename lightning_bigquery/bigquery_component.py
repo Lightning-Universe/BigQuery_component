@@ -115,6 +115,7 @@ class BigQuery(L.LightningWork):
         location: Optional[str] = None,
         to_dataframe: Optional[bool] = False,
         credentials: Optional[dict] = None,
+        executed_at: Optional[float] = time.time(),
     ):
 
         project = project or self.project
@@ -133,6 +134,7 @@ class BigQuery(L.LightningWork):
             location=location,
             to_dataframe=to_dataframe,
             credentials=credentials,
+            executed_at=executed_at,
         )
 
     def _query(
@@ -142,6 +144,8 @@ class BigQuery(L.LightningWork):
         location,
         to_dataframe,
         credentials,
+        *args,
+        **kwargs
     ):
 
         client = self.get_client(project, credentials)
