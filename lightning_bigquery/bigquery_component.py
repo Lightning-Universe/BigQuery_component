@@ -138,7 +138,14 @@ class BigQuery(L.LightningWork):
         )
 
     def _query(
-        self, sqlquery, project, location, to_dataframe, credentials, *args, **kwargs
+        self,
+        sqlquery,
+        project,
+        location,
+        to_dataframe,
+        credentials,
+        *args,
+        **kwargs
     ):
 
         client = self.get_client(project, credentials)
