@@ -16,7 +16,7 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 
-_fp = os.path.join(os.path.dirname(__file__), "../.qa.secrets.json")
+_fp = os.path.join(os.path.dirname(__file__), ".qa.secrets.json")
 with open(_fp) as _file:
     FAKE_CREDENTIALS = json.load(_file)
 
@@ -117,7 +117,7 @@ class BQReader(L.LightningFlow):
 
 def test_query_from_app():
     """Test that the BQ work runs end-to-end in a typical app flow."""
-    app = L.LightningApp(BQReader(), debug=True)
+    app = L.LightningApp(BQReader())
     MultiProcessRuntime(app, start_server=False).dispatch()
 
 
@@ -145,5 +145,5 @@ class BQInserter(L.LightningFlow):
 
 def test_insert_from_app():
     """Test that the BQ work runs end-to-end in a typical app flow."""
-    app = L.LightningApp(BQInserter(), debug=True)
+    app = L.LightningApp(BQInserter())
     MultiProcessRuntime(app, start_server=False).dispatch()
