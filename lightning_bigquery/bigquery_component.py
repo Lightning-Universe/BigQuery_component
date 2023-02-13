@@ -123,9 +123,7 @@ class BigQuery(L.LightningWork):
         credentials = credentials or self.credentials
 
         if not credentials:
-            raise ValueError(
-                f"Expected credentials with type dict. Received {credentials}"
-            )
+            raise ValueError(f"Expected credentials with type dict. Received {credentials}")
 
         self.run(
             action="query",
@@ -137,17 +135,7 @@ class BigQuery(L.LightningWork):
             executed_at=executed_at,
         )
 
-    def _query(
-        self,
-        sqlquery,
-        project,
-        location,
-        to_dataframe,
-        credentials,
-        *args,
-        **kwargs
-    ):
-
+    def _query(self, sqlquery, project, location, to_dataframe, credentials, *args, **kwargs):
         client = self.get_client(project, credentials)
         cursor = client.query(sqlquery, location=location)
 
@@ -173,9 +161,7 @@ class BigQuery(L.LightningWork):
         credentials = credentials or self.credentials
 
         if not credentials:
-            raise ValueError(
-                f"Expected credentials with type dict. Received {credentials}"
-            )
+            raise ValueError(f"Expected credentials with type dict. Received {credentials}")
 
         self.run(
             action="insert",
@@ -188,7 +174,6 @@ class BigQuery(L.LightningWork):
         )
 
     def _insert(self, json_rows, project, table, credentials):
-
         if isinstance(json_rows, Payload):
             json_rows = json_rows.value
 
@@ -196,7 +181,6 @@ class BigQuery(L.LightningWork):
         client.insert_rows_json(table=table, json_rows=json_rows)
 
     def run(self, action: str = "query", *args, **kwargs):
-
         try:
             if action == "query":
                 self._query(*args, **kwargs)

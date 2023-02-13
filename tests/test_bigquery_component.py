@@ -50,7 +50,6 @@ class MockQuery:
 
 
 def test_get_dataframe():
-
     with patch.object(bq.Client, "query", return_value=MockQuery()) as _:
         work = BigQuery()
         work.query(
@@ -96,7 +95,6 @@ class BQReader(L.LightningFlow):
         self.reader = ReaderWork()
 
     def run(self):
-
         self.client.query(
             sqlquery="fakequery",
             project="project",
@@ -127,7 +125,6 @@ class BQInserter(L.LightningFlow):
         self.client = PatchedBigQuery()
 
     def run(self):
-
         self.client.insert(
             json_rows=[{"foo": "bar"}, {"fooz": "barz"}],
             project="project",
