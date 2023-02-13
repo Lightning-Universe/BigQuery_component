@@ -16,7 +16,7 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 
-_fp = os.path.join(os.path.dirname(__file__), "../.qa.secrets.json")
+_fp = os.path.join(os.path.dirname(__file__), ".qa.secrets.json")
 with open(_fp) as _file:
     FAKE_CREDENTIALS = json.load(_file)
 
